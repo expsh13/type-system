@@ -1,8 +1,6 @@
-import { error } from "./utils.ts";
 import { parseArith } from "npm:tiny-ts-parser";
 
 type Type = { tag: "Boolean" } | { tag: "Number" };
-
 type Term =
   | { tag: "true" }
   | { tag: "false" }
@@ -10,7 +8,7 @@ type Term =
   | { tag: "number"; n: number }
   | { tag: "add"; left: Term; right: Term };
 
-export function typecheck(t: Term): Type {
+function typecheck(t: Term): Type {
   switch (t.tag) {
     case "true":
       return { tag: "Boolean" };
@@ -18,23 +16,24 @@ export function typecheck(t: Term): Type {
       return { tag: "Boolean" };
     case "if": {
       const condTy = typecheck(t.cond);
-      if (condTy.tag !== "Boolean") error("boolean expected", t.cond);
+      if (condTy.tag !== "Boolean") throw "boolean expected";
       const thnTy = typecheck(t.thn);
       const elsTy = typecheck(t.els);
-      if (thnTy.tag !== elsTy.tag)
-        error("then and else have different types", t);
+      if (thnTy.tag !== elsTy.tag) {
+        throw "then and else have different types";
+      }
       return thnTy;
     }
     case "number":
       return { tag: "Number" };
     case "add": {
       const leftTy = typecheck(t.left);
-      if (leftTy.tag !== "Number") error("number expected", t.left);
+      if (leftTy.tag !== "Number") throw "number expected";
       const rightTy = typecheck(t.right);
-      if (rightTy.tag !== "Number") error("number expected", t.left);
+      if (rightTy.tag !== "Number") throw "number expected";
       return { tag: "Number" };
     }
   }
 }
 
-console.log(typecheck(parseArith("1 + 2")));
+console.log(typecheck(parseArith("1 + true")));
